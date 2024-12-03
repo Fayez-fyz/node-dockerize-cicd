@@ -28,35 +28,13 @@ jobs:
         id: publish-image
         continue-on-error: false
 
-  deploy:
-    needs: build
-    runs-on: self-hosted 
-    steps:
-      - name: Pull image from docker hub
-        run: docker pull zyffyz/ci-cd:latest 
-        id: pull-image
-        continue-on-error: false
-
-      - name: Delete old container
-        run: docker rm -f nodejs-app-container
-        id: delete-container
-        continue-on-error: false
-
-      - name: Run Docker Container
-        run: docker run -d -p 5000:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}'  zyffyz/ci-cd
-        id: run-container
-        continue-on-error: false
-
       # Success/Failure message after key steps
-      - name: Check Success/Failure Messages
+      - name: Check Success/Failure Messages for build
         run: |
           echo "Login to Docker Hub outcome: ${{ steps.login-docker-hub.outcome }}"
           echo "Build Docker Image outcome: ${{ steps.build-image.outcome }}"
           echo "Publish Docker Image outcome: ${{ steps.publish-image.outcome }}"
-          echo "Pull Docker Image outcome: ${{ steps.pull-image.outcome }}"
-          echo "Delete Container outcome: ${{ steps.delete-container.outcome }}"
-          echo "Run Container outcome: ${{ steps.run-container.outcome }}"
-          
+        
           if [ "${{ steps.login-docker-hub.outcome }}" = "success" ]; then
             echo "✅ Successfully logged in to Docker Hub!"
           else
@@ -77,6 +55,33 @@ jobs:
             echo "❌ Failed to publish Docker Image!"
             exit 1
           fi
+        continue-on-error: false
+
+  deploy:
+    needs: build
+    runs-on: self-hosted 
+    steps:
+      - name: Pull image from docker hub
+        run: docker pull zyffyz/ci-cd:latest 
+        id: pull-image
+        continue-on-error: false
+
+      - name: Delete old container
+        run: docker rm -f nodejs-app-container
+        id: delete-container
+        continue-on-error: false
+
+      - name: Run Docker Container
+        run: docker run -d -p 5000:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}'  zyffyz/ci-cd
+        id: run-container
+        continue-on-error: false
+
+      # Success/Failure message after key steps
+      - name: Check Success/Failure Messages for Deploy
+        run: |
+          echo "Pull Docker Image outcome: ${{ steps.pull-image.outcome }}"
+          echo "Delete Container outcome: ${{ steps.delete-container.outcome }}"
+          echo "Run Container outcome: ${{ steps.run-container.outcome }}"
 
           if [ "${{ steps.pull-image.outcome }}" = "success" ]; then
             echo "✅ Successfully pulled Docker Image!"
