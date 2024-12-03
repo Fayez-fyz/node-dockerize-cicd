@@ -20,7 +20,7 @@ app.use(cors({ origin: "*" })); // Allow all CORS requests (consider restricting
 
 // Health check endpoint
 app.get("/", (req: Request, res: Response) => {
-    res.status(200).json({ message: "Dev da is running" });
+    res.status(200).json({ message: "Dev da is running sgfdsgdfgdsfgsdg" });
 });
 
 // Routes
