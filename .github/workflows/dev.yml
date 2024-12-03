@@ -1,0 +1,42 @@
+name: Dev Pipeline
+
+on:
+  push:
+    branches:
+      - dev # Trigger workflow for the 'dev' branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # Checks out the code from the repository
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: docker build -t zyffyz/ci-cd:dev .
+
+      - name: Publish Docker Image to Docker Hub
+        run: docker push zyffyz/ci-cd:dev
+
+  deploy:
+    needs: build
+    runs-on: self-hosted 
+
+    steps:
+      - name: Pull Image from Docker Hub
+        run: docker pull zyffyz/ci-cd:dev
+
+      - name: Delete Old Container
+        run: docker rm -f nodejs-app-container-dev || true
+
+      - name: Run Docker Container
+        run: |
+          docker run -d -p 8080:5000 --name nodejs-app-container-dev \
+          -e DB_HOST='${{ secrets.DB_HOST }}' \
+          -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+          -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}' \
+          zyffyz/ci-cd:dev
