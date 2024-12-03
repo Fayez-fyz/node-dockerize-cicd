@@ -31,10 +31,7 @@ jobs:
       # Success/Failure message after key steps
       - name: Check Success/Failure Messages for build
         run: |
-          echo "Login to Docker Hub outcome: ${{ steps.login-docker-hub.outcome }}"
-          echo "Build Docker Image outcome: ${{ steps.build-image.outcome }}"
-          echo "Publish Docker Image outcome: ${{ steps.publish-image.outcome }}"
-        
+
           if [ "${{ steps.login-docker-hub.outcome }}" = "success" ]; then
             echo "✅ Successfully logged in to Docker Hub!"
           else
@@ -79,9 +76,6 @@ jobs:
       # Success/Failure message after key steps
       - name: Check Success/Failure Messages for Deploy
         run: |
-          echo "Pull Docker Image outcome: ${{ steps.pull-image.outcome }}"
-          echo "Delete Container outcome: ${{ steps.delete-container.outcome }}"
-          echo "Run Container outcome: ${{ steps.run-container.outcome }}"
 
           if [ "${{ steps.pull-image.outcome }}" = "success" ]; then
             echo "✅ Successfully pulled Docker Image!"
