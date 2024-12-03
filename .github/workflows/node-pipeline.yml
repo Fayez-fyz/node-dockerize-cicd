@@ -29,10 +29,6 @@ jobs:
     needs: build
     runs-on: self-hosted 
     steps:
-      - name: Login to docker hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        id: login-deploy-docker-hub
-
       - name: Pull image from docker hub
         run: docker pull zyffyz/ci-cd:latest 
         id: pull-image
@@ -67,13 +63,6 @@ jobs:
             echo "✅ Successfully published Docker Image !"
           else
             echo "❌ Failed to publish Docker Image!"
-            exit 1
-          fi
-
-          if [ ${{ steps.login-deploy-docker-hub.outcome }} == 'success' ]; then
-            echo "✅ Successfully logged in to Docker Hub!"
-          else
-            echo "❌ Failed to log in to Docker Hub!"
             exit 1
           fi
 
