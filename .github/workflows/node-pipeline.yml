@@ -43,47 +43,52 @@ jobs:
 
       # Success/Failure message after key steps
       - name: Check Success/Failure Messages
-        if: always()
         run: |
-          if [ ${{ steps.login-docker-hub.outcome }} == 'success' ]; then
+          echo "Login to Docker Hub outcome: ${{ steps.login-docker-hub.outcome }}"
+          echo "Build Docker Image outcome: ${{ steps.build-image.outcome }}"
+          echo "Publish Docker Image outcome: ${{ steps.publish-image.outcome }}"
+          echo "Pull Docker Image outcome: ${{ steps.pull-image.outcome }}"
+          echo "Delete Container outcome: ${{ steps.delete-container.outcome }}"
+          echo "Run Container outcome: ${{ steps.run-container.outcome }}"
+          
+          if [ "${{ steps.login-docker-hub.outcome }}" = "success" ]; then
             echo "✅ Successfully logged in to Docker Hub!"
           else
             echo "❌ Failed to log in to Docker Hub!"
             exit 1
           fi
 
-          if [ ${{ steps.build-image.outcome }} == 'success' ]; then
+          if [ "${{ steps.build-image.outcome }}" = "success" ]; then
             echo "✅ Successfully built Docker Image!"
           else
             echo "❌ Failed to build Docker Image!"
             exit 1
           fi
 
-          if [ ${{ steps.publish-image.outcome }} == 'success' ]; then
-            echo "✅ Successfully published Docker Image !"
+          if [ "${{ steps.publish-image.outcome }}" = "success" ]; then
+            echo "✅ Successfully published Docker Image!"
           else
             echo "❌ Failed to publish Docker Image!"
             exit 1
           fi
 
-          if [ ${{ steps.pull-image.outcome }} == 'success' ]; then
+          if [ "${{ steps.pull-image.outcome }}" = "success" ]; then
             echo "✅ Successfully pulled Docker Image!"
           else
             echo "❌ Failed to pull Docker Image!"
             exit 1
           fi
 
-          if [ ${{ steps.delete-container.outcome }} == 'success' ]; then
+          if [ "${{ steps.delete-container.outcome }}" = "success" ]; then
             echo "✅ Successfully deleted old container!"
           else
             echo "❌ Failed to delete old container!"
             exit 1
           fi
 
-          if [ ${{ steps.run-container.outcome }} == 'success' ]; then
+          if [ "${{ steps.run-container.outcome }}" = "success" ]; then
             echo "✅ Successfully deployed container!"
           else
             echo "❌ Failed to deploy container!"
             exit 1
           fi
-        continue-on-error: false
