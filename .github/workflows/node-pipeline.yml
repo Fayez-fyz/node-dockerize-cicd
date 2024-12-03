@@ -16,14 +16,17 @@ jobs:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         id: login-docker-hub
+        continue-on-error: false
 
       - name: Build Docker Image
         run: docker build -t zyffyz/ci-cd  .
         id: build-image
+        continue-on-error: false
 
       - name: Publish Image to docker hub
         run: docker push zyffyz/ci-cd:latest
         id: publish-image
+        continue-on-error: false
 
   deploy:
     needs: build
@@ -32,14 +35,17 @@ jobs:
       - name: Pull image from docker hub
         run: docker pull zyffyz/ci-cd:latest 
         id: pull-image
+        continue-on-error: false
 
       - name: Delete old container
         run: docker rm -f nodejs-app-container
-        id: delete-container  
+        id: delete-container
+        continue-on-error: false
 
       - name: Run Docker Container
         run: docker run -d -p 5000:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}'  zyffyz/ci-cd
         id: run-container
+        continue-on-error: false
 
       # Success/Failure message after key steps
       - name: Check Success/Failure Messages
@@ -92,3 +98,4 @@ jobs:
             echo "❌ Failed to deploy container!"
             exit 1
           fi
+        continue-on-error: false
