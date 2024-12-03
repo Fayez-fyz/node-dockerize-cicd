@@ -42,7 +42,7 @@ jobs:
         id: delete-container  
 
       - name: Run Docker Container
-        run: docker run -d -p 5000:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' DB_PASSWORD='${{ secrets.DB_PASSWORD }}' DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}'  zyffyz/ci-cd
+        run: docker run -d -p 5000:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}'  zyffyz/ci-cd
         id: run-container
 
       # Success/Failure message after key steps
