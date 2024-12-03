@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev # Include the 'dev' branch for testing
 
 jobs:
   build:
@@ -13,25 +14,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3 # Checks out the code from the repository
 
-      - name: Login to docker hub
+      - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         id: login-docker-hub
         continue-on-error: false
 
       - name: Build Docker Image
-        run: docker build -t zyffyz/ci-cd  .
+        run: |
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            docker build -t zyffyz/ci-cd:dev .
+          else
+            docker build -t zyffyz/ci-cd:prod .
+          fi
         id: build-image
         continue-on-error: false
 
-      - name: Publish Image to docker hub
-        run: docker push zyffyz/ci-cd:latest
+      - name: Publish Docker Image to Docker Hub
+        run: |
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            docker push zyffyz/ci-cd:dev
+          else
+            docker push zyffyz/ci-cd:prod
+          fi
         id: publish-image
         continue-on-error: false
 
-      # Success/Failure message after key steps
-      - name: Check Success/Failure Messages for build
+      # Success/Failure messages for build
+      - name: Check Success/Failure Messages for Build
         run: |
-
           if [ "${{ steps.login-docker-hub.outcome }}" = "success" ]; then
             echo "✅ Successfully logged in to Docker Hub!"
           else
@@ -57,26 +67,41 @@ jobs:
   deploy:
     needs: build
     runs-on: self-hosted 
+
     steps:
-      - name: Pull image from docker hub
-        run: docker pull zyffyz/ci-cd:latest 
+      - name: Pull Image from Docker Hub
+        run: |
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            docker pull zyffyz/ci-cd:dev
+          else
+            docker pull zyffyz/ci-cd:prod
+          fi
         id: pull-image
         continue-on-error: false
 
-      - name: Delete old container
-        run: docker rm -f nodejs-app-container
+      - name: Delete Old Container
+        run: |
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            docker rm -f nodejs-app-container-dev
+          else
+            docker rm -f nodejs-app-container
+          fi
         id: delete-container
         continue-on-error: false
 
       - name: Run Docker Container
-        run: docker run -d -p 80:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}' zyffyz/ci-cd
+        run: |
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            docker run -d -p 8080:5000 --name nodejs-app-container-dev -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}' zyffyz/ci-cd:dev
+          else
+            docker run -d -p 80:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}' zyffyz/ci-cd:prod
+          fi
         id: run-container
         continue-on-error: false
 
-      # Success/Failure message after key steps
+      # Success/Failure messages for deploy
       - name: Check Success/Failure Messages for Deploy
         run: |
-
           if [ "${{ steps.pull-image.outcome }}" = "success" ]; then
             echo "✅ Successfully pulled Docker Image!"
           else
