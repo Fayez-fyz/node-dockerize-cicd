@@ -27,7 +27,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api", todoRoutes);
 
 // Start the server
-const port: number = parseInt(process.env.PORT || "3000", 10);
+const port: number = parseInt(process.env.PORT || "5000", 10);
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
 });
