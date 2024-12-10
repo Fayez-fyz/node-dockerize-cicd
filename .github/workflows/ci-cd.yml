@@ -14,8 +14,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3 # Checks out the code from the repository
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.x
+
+      - name: Install dependencies with npm
+        run: npm install
+        continue-on-error: false
+        id: install-dependencies
+
+      - name: Run Jest tests
+        run: npm test
+        continue-on-error: false
+        id: run-tests
+
       - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
+        continue-on-error: false
         id: login-docker-hub
 
       - name: Build Docker Image
@@ -25,6 +41,7 @@ jobs:
           else
             docker build -t zyffyz/ci-cd:prod .
           fi
+        continue-on-error: false
         id: build-image
 
       - name: Publish Docker Image to Docker Hub
@@ -34,11 +51,27 @@ jobs:
           else
             docker push zyffyz/ci-cd:prod
           fi
+        continue-on-error: false
         id: publish-image
 
       # Success/Failure messages for build
       - name: Check Success/Failure Messages for Build
+        if: always()
         run: |
+          if [ "${{ steps.install-dependencies.outcome }}" = "success" ]; then
+            echo "✅ Successfully installed dependencies!"
+          else
+            echo "❌ Failed to install dependencies!"
+            exit 1
+          fi
+
+          if [ "${{ steps.run-tests.outcome }}" = "success" ]; then
+            echo "✅ Successfully ran tests!"
+          else
+            echo "❌ Failed to run tests!"
+            exit 1
+          fi
+
           if [ "${{ steps.login-docker-hub.outcome }}" = "success" ]; then
             echo "✅ Successfully logged in to Docker Hub!"
           else
@@ -73,6 +106,7 @@ jobs:
           else
             docker pull zyffyz/ci-cd:prod
           fi
+        continue-on-error: false
         id: pull-image
 
       - name: Delete Old Container
@@ -82,6 +116,7 @@ jobs:
           else
             docker rm -f nodejs-app-container
           fi
+        continue-on-error: false
         id: delete-container
 
       - name: Run Docker Container
@@ -91,6 +126,7 @@ jobs:
           else
             docker run -d -p 80:5000 --name nodejs-app-container -e DB_HOST='${{ secrets.DB_HOST }}' -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' -e DB_CLUSTER_NAME='${{ secrets.DB_CLUSTER_NAME }}' zyffyz/ci-cd:prod
           fi
+        continue-on-error: false
         id: run-container
 
       # Success/Failure messages for deploy
