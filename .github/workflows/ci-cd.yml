@@ -28,6 +28,11 @@ jobs:
         run: npm test
         continue-on-error: false
         id: run-tests
+        env:
+          DB_TEST_HOST: ${{ secrets.DB_TEST_HOST }}
+          DB_TEST_PASSWORD: ${{ secrets.DB_TEST_PASSWORD }}
+          DB_TEST_CLUSTER_NAME: ${{ secrets.DB_TEST_CLUSTER_NAME }}
+          NODE_ENV: test
 
       - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
